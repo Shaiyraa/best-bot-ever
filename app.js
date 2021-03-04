@@ -15,12 +15,14 @@ fs.readdir("./commands/", (err, files) => {
     return;
   }
 
-  jsfile.forEach((f, i) =>{
-    let props = require(`./commands/${f}`);
-    console.log(`${f} loaded!`);
+  jsfile.forEach((command) =>{
+    let props = require(`./commands/${command}`);
+    console.log(`${command} loaded!`);
     bot.commands.set(props.help.name, props);
+    console.log(props.help)
   });
 
+  
 });
 // //Add Role And Welcome New Member
 // bot.on('guildMemberAdd', member => {
