@@ -5,6 +5,10 @@ const fs = require("fs");
 const bot = new Discord.Client({disableEveryone: true});
 bot.commands = new Discord.Collection();
 
+  //TODO
+  // delete command messages after responding to them
+  // make a command for notices @training @nodewar etc
+
 fs.readdir("./commands/", (err, files) => {
 
   if(err) console.log(err);
