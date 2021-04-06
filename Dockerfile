@@ -13,6 +13,7 @@ COPY . /usr/src/bot-api
 ENTRYPOINT npm start
 
 EXPOSE 3000
+
 # Build arguments
 ARG NODE_VERSION=14.15.4
 
