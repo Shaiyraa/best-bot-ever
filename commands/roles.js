@@ -5,7 +5,7 @@ module.exports.run = async (bot, message, args) => {
 
   // GET EMOJIS AND MATCHING ROLES
   if (!rolesNames.length) return message.channel.send("Provide names of roles you want to have reactions set up for!");
-  let error = false
+  let error = false;
   const emojis = rolesNames.map(item => {
     let res = message.guild.emojis.cache.find(emoji => emoji.name === item);
 
@@ -34,7 +34,7 @@ module.exports.run = async (bot, message, args) => {
   const embed = new Discord.MessageEmbed().setDescription(`Choose a role to see related channels:`);
   const reactionMessage = await message.channel.send(embed);
 
-  for (const item of emojis) {
+  for (let item of emojis) {
     await reactionMessage.react(item);
   }
 

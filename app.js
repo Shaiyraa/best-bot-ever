@@ -2,12 +2,46 @@ const config = require("./config.json");
 const token = require("./token.json");
 const Discord = require("discord.js");
 const fs = require("fs");
+const mongoose = require('mongoose');
+const winston = require('winston');
 const bot = new Discord.Client({ disableEveryone: true });
 bot.commands = new Discord.Collection();
 
 // TODO:
 // delete command messages after responding to them
 // make a command for notices @training @nodewar etc
+
+const db = process.env.MONGO_URI || "mongodb://test:test@localhost:27017/bestbot"
+mongoose.connect(db, {
+  useUnifiedTopology: true,
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false
+}).then(connection => {
+  console.log("Connection to db established.")
+}).catch(err => {
+  console.log(err)
+  console.log("Cannot connect to db.")
+})
+
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(),
+  defaultMeta: { service: 'user-service' },
+  transports: [
+    //
+    // - Write all logs with level `error` and below to `error.log`
+    // - Write all logs with level `info` and below to `combined.log`
+    //
+    new winston.transports.File({ filename: 'error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log' }),
+  ],
+});
+if (process.env.NODE_ENV !== 'production') {
+  logger.add(new winston.transports.Console({
+    format: winston.format.simple(),
+  }));
+}
 
 fs.readdir("./commands/", (err, files) => {
 
@@ -21,9 +55,9 @@ fs.readdir("./commands/", (err, files) => {
 
   jsfile.forEach((command) => {
     let props = require(`./commands/${command}`);
-    console.log(`${command} loaded!`);
+    //console.log(`${command} loaded!`);
     bot.commands.set(props.help.name, props);
-    console.log(props.help);
+    //console.log(props.help);
   });
 
 
