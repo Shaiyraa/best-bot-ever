@@ -18,35 +18,32 @@ module.exports.run = async (bot, message, args) => {
   const no = await event.reactions.resolve("➖");
 
   // get collection of users that reacted
-  const yesUsers = await yes.users.fetch();
-  const noUsers = await no.users.fetch();
+  const yesUsersMap = await yes.users.fetch();
+  const noUsersMap = await no.users.fetch();
 
-  let yesUsersArray = [];
-  for (let item of yesUsers.keys()) {
-    let user = yesUsers.get(item);
-    if (!user.bot) {
-      yesUsersArray.push(user.username);
-    }
-  };
+  const createArrayOfUsersOutOfMap = (map) => {
+    let arr = []
+    for (let item of map.keys()) {
+      let user = map.get(item);
+      if (!user.bot) {
+        arr.push(user.username);
+      };
+    };
+    if (!arr.length) arr = "No reactions"
+    return arr;
+  }
 
-  let noUsersArray = []
-  for (let item of noUsers.keys()) {
-    let user = noUsers.get(item);
-    if (!user.bot) {
-      noUsersArray.push(user.username);
-    }
-  };
+  let yesUsersArray = createArrayOfUsersOutOfMap(yesUsersMap);
+  let noUsersArray = createArrayOfUsersOutOfMap(noUsersMap);
 
-  if (!yesUsersArray.length) yesUsersArray = "No reactions"
-  message.channel.send("Here are the people that reacted with YES:");
-  const embedYes = new Discord.MessageEmbed().setDescription(yesUsersArray);
-  const responseMessageYes = await message.channel.send(embedYes);
+  const sendMessageWithAttendanceForReaction = async (reaction, array) => {
+    message.channel.send(`Here are the people that reacted with ${reaction}:`);
+    const embed = new Discord.MessageEmbed().setDescription(array);
+    const responseMessage = await message.channel.send(embed);
+  }
 
-  if (!noUsersArray.length) noUsersArray = "No reactions"
-  message.channel.send("Here are the people that reacted with NO:");
-  const embedNo = new Discord.MessageEmbed().setDescription(noUsersArray);
-  const responseMessageNo = await message.channel.send(embedNo);
-
+  await sendMessageWithAttendanceForReaction("YES", yesUsersArray)
+  await sendMessageWithAttendanceForReaction("NO", noUsersArray)
 }
 
 module.exports.help = {

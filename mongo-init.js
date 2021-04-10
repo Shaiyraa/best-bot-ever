@@ -14,15 +14,3 @@ db.createUser({
 })
 
 db.createCollection('events')
-
-db.events.save({
-    type: "nodewar",
-    date: "02.02.2021",
-    maxAttendance: 100
-})
-
-db.events.save({
-    type: "nodewar",
-    date: "04.02.2021",
-    maxAttendance: 100
-})
