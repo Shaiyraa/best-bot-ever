@@ -2,14 +2,16 @@ const Discord = require("discord.js");
 const Event = require('../db/eventSchema');
 
 module.exports.run = async (bot, message, args) => {
-  let type = args[0] || "node";
+  let type = args[0] || "node war";
   let date = args[1] || "02-02-2021";
-  let maxAttendance = args[2] || null;
+  let hour = args[2] || "20:00";
+  let alerts = args[3] || "true";
+  let maxAttendance = args[4] || null;
 
   message.delete({ timeout: 4000 });
 
   // SEND THE MESSAGE WITH REACTION ICONS
-  const embed = new Discord.MessageEmbed().setDescription(`EVENT: ${type} #NW02022021\nDATE: 02.02.2021 20:00`);
+  const embed = new Discord.MessageEmbed().setDescription(`EVENT: ${type}\nDATE: 02.02.2021 20:00`);
   let messageId
   const reactionMessage = await message.channel.send(embed).then(sent => {
     messageId = sent.id;
@@ -32,3 +34,4 @@ module.exports.help = {
   name: "event",
   description: "set new event"
 };
+
