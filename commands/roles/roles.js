@@ -36,11 +36,10 @@ module.exports.run = async (bot, message, args) => {
 
   for (let item of emojis) {
     await reactionMessage.react(item);
-  }
+  };
 
   // CREATE COLLECTOR - listen for reactions
   const filter = (reaction, user) => {
-
     return emojis.includes(reaction.emoji);
   };
 
@@ -55,8 +54,8 @@ module.exports.run = async (bot, message, args) => {
       if (emojis[i].id === reaction.emoji.id) {
         member.roles.add(roles[i])
           .catch(console.log);
-      }
-    }
+      };
+    };
   });
 
   collector.on('remove', (reaction, user) => {
@@ -68,13 +67,13 @@ module.exports.run = async (bot, message, args) => {
       if (emojis[i].id === reaction.emoji.id) {
         member.roles.remove(roles[i])
           .catch(console.log);
-      }
-    }
+      };
+    };
   });
-}
+};
 
 module.exports.help = {
   name: "roles",
   description: "takes case-sensitive names of roles separated by space; for example: ?roles BlackDesertOnline Valorant",
   usage: "reaction roles"
-}
+};
