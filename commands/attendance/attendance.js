@@ -31,3 +31,6 @@ module.exports.help = {
   name: "attendance",
   description: "check attendance on events"
 };
+
+
+// TODO: when channels are not set in config, make it work on the same channel where the command was sent
