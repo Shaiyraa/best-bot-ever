@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const guildSchema = new mongoose.Schema({
-  discordGuildId: {
+  id: {
     type: String,
     required: [true, "Provide discord guild ID."]
   },

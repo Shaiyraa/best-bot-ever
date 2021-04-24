@@ -1,10 +1,12 @@
 const Discord = require("discord.js");
 const fs = require("fs");
+const sendEmbedMessage = require("../../utils/sendEmbedMessage")
 
 module.exports.run = async (bot, message, args) => {
+
   message.channel.send("Available commands: \n");
 
-  fs.readdir("./commands/", (err, files) => {
+  fs.readdir("./commands/", async (err, files) => {
     if (err) console.error(err);
 
     if (files.length <= 0) {
@@ -25,9 +27,10 @@ module.exports.run = async (bot, message, args) => {
     results.forEach(item => {
       commandsArray.push(`**${item.name}** \n${item.description} \n${item.usage}`);
     });
-    message.channel.send(commandsArray);
+
+    await sendEmbedMessage(message.channel, "Available commands:", commandsArray)
   });
-}
+};
 
 module.exports.help = {
   name: "help",

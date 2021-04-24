@@ -3,7 +3,9 @@ const token = require("./token.json");
 const Discord = require("discord.js");
 const fs = require("fs");
 const mongoose = require('mongoose');
-const app = require('./app');
+const dotenv = require('dotenv');
+const scheduleJobsInDB = require("./scheduleJobsInDB");
+dotenv.config({ path: './config.env' })
 
 const db = process.env.MONGO_URI || "mongodb://test:test@localhost:27017/bestbot"
 mongoose.connect(db, {
@@ -33,15 +35,60 @@ fs.readdir("./commands/", (err, files) => {
   };
 
   files.forEach((command) => {
-    //let props = require(`./commands/${command}`);
     let props = require(`./commands/${command}/${command}.js`);
-    //console.log(`${command} loaded!`);
     bot.commands.set(props.help.name, props);
-    //console.log(props.help);
   });
-
-
 });
+
+let talkedRecently = new Set();
+const talkedRecentlyAdd = (user) => {
+  // Adds the user to the set so that they can't talk for a minute
+  talkedRecently.add(user.id);
+  setTimeout(() => {
+    // Removes the user from the set after a minute
+    talkedRecently.delete(user.id);
+  }, 5000);
+}
+
+//Command Manager
+bot.on("message", async message => {
+  if (message.author.bot) return;
+  if (message.channel.type === "dm") return;
+
+  let prefix = config.prefix;
+
+  //Check for prefix
+  if (!message.content.startsWith(prefix)) {
+    return;
+  }
+
+  if (talkedRecently.has(message.author.id)) {
+    message.channel.send("You need to wait 5 seconds to type a command again.")
+    return;
+  }
+
+  talkedRecentlyAdd(message.author)
+
+  let messageArray = message.content.split(" ");
+  let cmd = messageArray[0];
+  let args = messageArray.slice(1);
+
+  let commandfile = bot.commands.get(cmd.slice(prefix.length));
+  if (commandfile) {
+    await commandfile.run(bot, message, args);
+  } else {
+    message.channel.send("I don't recognize this command.")
+  }
+});
+
+bot.login(token.token);
+
+// do stuff when server gets up
+scheduleJobsInDB(bot)
+
+
+
+
 
 // bot.on('guildMemberAdd', member => {
 //   console.log('User' + member.user.tag + 'has joined the server!');
@@ -50,29 +97,3 @@ fs.readdir("./commands/", (err, files) => {
 // bot.on('guildMemberRemove', member => {
 //   console.log('User' + member.user.tag + 'has left the server!');
 // })
-
-
-//Command Manager
-bot.on("message", async message => {
-  if (message.author.bot) return;
-  if (message.channel.type === "dm") return;
-
-  let prefix = config.prefix;
-  let messageArray = message.content.split(" ");
-  let cmd = messageArray[0];
-  let args = messageArray.slice(1);
-
-  //Check for prefix
-  if (!cmd.startsWith(config.prefix)) return;
-
-  let commandfile = bot.commands.get(cmd.slice(prefix.length));
-  if (commandfile) commandfile.run(bot, message, args);
-
-});
-
-bot.login(token.token);
-
-
-// TODO:
-// delete command messages after responding to them
-// make a command for notices @training @nodewar etc

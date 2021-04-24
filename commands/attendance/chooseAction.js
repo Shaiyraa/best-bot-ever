@@ -1,6 +1,7 @@
 const Discord = require("discord.js");
+const Guild = require("../../db/guildSchema");
+const config = require("../../config.json");
 const sendEmbedMessage = require("../../utils/sendEmbedMessage");
-const guildConfig = require("../../guild-config");
 
 module.exports = async (message, event, groupMessage) => {
 
@@ -25,29 +26,38 @@ module.exports = async (message, event, groupMessage) => {
     if (reaction.emoji.name === "✉️") {
 
       // ask for the content of the message
-      await sendEmbedMessage(message, "Provide the content of the message:");
+      await sendEmbedMessage(message.channel, "Provide the content of the message:");
 
       // wait for an answer
       const filter = m => m.author.id === message.author.id;
-      let dm = ""
       await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
         .then(m => {
-          dm = m.first();
+          let dm = m.first().content;
+          if (!dm || dm.startsWith(config.prefix)) {
+            message.channel.send("Messages not sent.")
+            return
+          }
+          // get IDs from the tags and send messages
+          const userIdsArray = userTagsArray.map(async item => {
+            let id = item.replace(/([<>@])+/g, "");
+            message.channel.guild.members.cache.get(id).send(dm).catch(err => {
+              if (err.code === 50007) return
+              console.log(err)
+            })
+          })
+          message.channel.send("Messages sent!")
         })
-        .catch(() => message.channel.send("Time is up!"));
-
-      // get IDs from the tags and send messages
-      const userIdsArray = userTagsArray.map(async item => {
-        let id = item.replace(/([<>@])+/g, "");
-        message.channel.guild.members.cache.get(id).send(dm).catch(() => message.channel.send("Something went wrong!"))
-      })
+        .catch(err => {
+          message.channel.send("Something went wrong!")
+          console.log(err)
+        });
     };
-    message.channel.send("Messages sent!")
 
     if (reaction.emoji.name === "❗") {
 
       // find the channel to remind
-      const channel = await message.guild.channels.resolve(guildConfig.remindersChannel);
+      const guild = await Guild.findOne({ id: message.channel.guild.id })
+      const channel = await message.guild.channels.resolve(guild?.remindersChannel) || message.channel;
 
       // send a message mentioning the users
       const embed = new Discord.MessageEmbed().setDescription(`[Link to the event](${event.url})`).setTitle("Reminder to react:");

@@ -1,16 +1,18 @@
-const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 const chooseAction = require("./chooseAction");
-const guildConfig = require("../../guild-config");
+const Guild = require("../../db/guildSchema");
+const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 
 module.exports = async (message, eventId) => {
-  const reactionMessage = await sendEmbedMessage(message, "Choose group of people you wanna see:", "✅ - Yes\n❌ - No\n❔ - Undecided\n🌐 - Show all three groups");
+
+  const reactionMessage = await sendEmbedMessage(message.channel, "Choose group of people you wanna see:", "✅ - Yes\n❌ - No\n❔ - Undecided\n🌐 - Show all three groups");
   await reactionMessage.react("✅");
   await reactionMessage.react("❌");
   await reactionMessage.react("❔");
   await reactionMessage.react("🌐");
 
-  const channel = await message.guild.channels.resolve(guildConfig.announcementsChannel)
-  const event = await channel.messages.fetch(eventId)
+  const guild = await Guild.findOne({ id: message.channel.guild.id })
+  const channel = await message.guild.channels.resolve(guild?.announcementsChannel) || message.channel; // 
+  const event = await channel.messages.fetch(eventId).catch(console.log)
 
   if (!event) {
     message.channel.send("Event message doesn't exist anymore.");
@@ -43,14 +45,23 @@ module.exports = async (message, eventId) => {
 
   const respondWithReactionGroup = async (reaction, usersArray) => {
     if (!usersArray.length) usersArray = "No users";
-    return await sendEmbedMessage(message, `Here are the people that reacted with ${reaction}:`, usersArray);
+    return await sendEmbedMessage(message.channel, `Here are the people that reacted with ${reaction}:`, usersArray);
   };
 
   const respondWithUndecided = async (yesUsersArray, noUsersArray) => {
 
     // get users with member role and create an array of their IDs
+    if (!guild?.memberRole) {
+      message.channel.send("Please, provide memberRole using ?config to use this option.")
+      return
+    }
     await message.channel.guild.members.fetch();
-    const memberRole = message.channel.guild.roles.cache.find(role => role.name === guildConfig.memberRole);
+    const memberRole = message.channel.guild.roles.cache.find(role => role.id === guild?.memberRole)
+
+    if (!memberRole) {
+      message.channel.send("memberRole doesn't exist anymore.")
+      return
+    }
     const membersMap = memberRole.members;
 
     let membersArray = [];
@@ -66,7 +77,7 @@ module.exports = async (message, eventId) => {
     let undecidedArray = membersArray.filter(ar => !toRemove.find(rm => rm === ar));
     if (!undecidedArray.length) undecidedArray = "No users";
 
-    return await sendEmbedMessage(message, `Here are the people that didn't react at all:`, undecidedArray);
+    return await sendEmbedMessage(message.channel, `Here are the people that didn't react at all:`, undecidedArray);
   };
 
   // CREATE COLLECTOR
