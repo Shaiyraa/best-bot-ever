@@ -15,17 +15,17 @@ const scheduleJobsInDB = async (bot) => {
     //console.log(`Scheduled job for event ${job.event} at ${job.date}`)
     switch (job.event.date - job.date) {
       case 7200000: {
-        type = "undecided"
+        type = "❔"
         title = "There's an event starting in 2 hours! Let your officers know if you're gonna be there."
         break;
       }
       case 3600000: {
-        type = "yes"
+        type = "✅"
         title = "There's an event starting in 1 hour! Time to buff up and prepare."
         break;
       }
       case 900000: {
-        type = "yes"
+        type = "✅"
         title = "Get in voice chat, the event starts in 15 minutes!"
         break;
       }

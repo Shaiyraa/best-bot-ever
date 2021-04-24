@@ -23,7 +23,12 @@ module.exports.run = async (bot, message, args) => {
   }
 
   date = date.split(/\D/g)[1] + "-" + date.split(/\D/g)[0] + "-" + date.split(/\D/g)[2]
-  const eventArray = await Event.find({ date });
+  let thisDayDate = new Date(date)
+  let nextDayDate = new Date(thisDayDate)
+  nextDayDate.setDate(thisDayDate.getDate() + 1)
+
+  const eventArray = await Event.find({ date: { $gt: date, $lt: nextDayDate } });
+  console.log(eventArray)
 
   if (!eventArray.length) {
     message.channel.send("No events matching the parameters.");

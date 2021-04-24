@@ -2,7 +2,6 @@ const Guild = require("../db/guildSchema");
 
 const createGroupArray = async (reaction, eventMessage) => {
   // resolve reaction
-  console.log(eventMessage)
   const r = await eventMessage.reactions.resolve(reaction);
   if (!r) {
     message.channel.send("Something went wrong.");
@@ -20,18 +19,18 @@ const createGroupArray = async (reaction, eventMessage) => {
       usersArray.push(`<@${user.id}>`);
     };
   };
-
+  if (!usersArray.length) usersArray = "No users";
   return usersArray;
 };
 
-const getArrayOfUsers = async (type, eventMessage) => {
-  if (type === "yes") {
+const getArrayOfUsers = async (reaction, eventMessage) => {
+  if (reaction === "✅") {
     return await createGroupArray("✅", eventMessage)
 
-  } else if (type === "no") {
+  } else if (reaction === "❌") {
     return await createGroupArray("❌", eventMessage)
 
-  } else if (type === "undecided") {
+  } else if (reaction === "❔") {
     const yesUsersArray = await createGroupArray("✅", eventMessage)
     const noUsersArray = await createGroupArray("❌", eventMessage)
 

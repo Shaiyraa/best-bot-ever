@@ -189,15 +189,15 @@ module.exports.run = async (bot, message, args) => {
   })
 
   schedule.scheduleJob(tagUndecided, async function () {
-    let usersArray = await getArrayOfUsers("undecided", reactionMessage)
+    let usersArray = await getArrayOfUsers("❔", reactionMessage)
     await tagUsersWithMessage(message.guild, usersArray, "There's an event starting in 2 hours! Let your officers know if you're gonna be there.")
   });
   schedule.scheduleJob(tagYes, async function () {
-    let usersArray = await getArrayOfUsers("yes", reactionMessage)
+    let usersArray = await getArrayOfUsers("✅", reactionMessage)
     await tagUsersWithMessage(message.guild, usersArray, "There's an event starting in 1 hour! Time to buff up and prepare.")
   });
   schedule.scheduleJob(tagYesVoice, async function () {
-    let usersArray = await getArrayOfUsers("yes", reactionMessage)
+    let usersArray = await getArrayOfUsers("✅", reactionMessage)
     await tagUsersWithMessage(message.guild, usersArray, "Get in voice chat, the event starts in 15 minutes!")
   });
 };
