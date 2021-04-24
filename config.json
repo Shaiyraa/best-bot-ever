@@ -1,4 +1,9 @@
-  
-{
-	"prefix":"?"
-}
+	{
+		"prefix": "?",
+		"yesEmoji": "✅",
+		"noEmoji": "❌",
+		"undecidedEmoji": "❔",
+		"allGroupsEmoji": "🌐",
+		"messageEmoji": "✉️",
+		"alertEmoji": "❗"
+	}
