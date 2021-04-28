@@ -3,9 +3,7 @@ const chooseAction = require("./chooseAction");
 const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 const getArrayOfUsers = require("../../utils/getArrayOfUsers");
 
-const Guild = require("../../db/guildSchema");
-
-module.exports = async (message, eventId) => {
+module.exports = async (message, eventId, guildConfig) => {
   const reactionMessage = await sendEmbedMessage(
     message.channel,
     "Choose group of people you wanna see:",
@@ -19,9 +17,8 @@ module.exports = async (message, eventId) => {
   });
 
   // get event message
-  const guild = await Guild.findOne({ id: message.channel.guild.id });
-  const channel = await message.guild.channels.resolve(guild.announcementsChannel);
-  const eventMessage = await channel.messages.fetch(eventId).catch(console.log);
+  const channel = await message.guild.channels.resolve(guildConfig.announcementsChannel);
+  const eventMessage = await channel.messages.fetch(eventId);
 
   if (!eventMessage) {
     message.channel.send("Event message doesn't exist anymore.");
@@ -35,11 +32,12 @@ module.exports = async (message, eventId) => {
     const getArrayOfUsersAndSendMessage = async (reaction) => {
       // set title depending on the reaction
       let title;
-      reaction === undecidedEmoji ? title = "Here are the people that didn't react:" : title = `Here are the people that reacted with ${reaction}:`;
+      reaction === config.undecidedEmoji ? title = "Here are the people that didn't react:" : title = `Here are the people that reacted with ${reaction}:`;
 
-      const usersArray = await getArrayOfUsers(reaction, eventMessage);
+      let usersArray = await getArrayOfUsers(reaction, eventMessage, guildConfig);
+      if (!usersArray.length) usersArray = "No users"
       const reactionGroupMessage = await sendEmbedMessage(message.channel, title, usersArray);
-      chooseAction(message, eventMessage, reactionGroupMessage);
+      chooseAction(message, eventMessage, reactionGroupMessage, guildConfig);
     }
 
     switch (reaction.emoji.name) {

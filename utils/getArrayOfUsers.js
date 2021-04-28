@@ -19,11 +19,10 @@ const createGroupArray = async (reaction, eventMessage) => {
       usersArray.push(`<@${user.id}>`);
     };
   };
-  if (!usersArray.length) usersArray = "No users";
   return usersArray;
 };
 
-const getArrayOfUsers = async (reaction, eventMessage) => {
+const getArrayOfUsers = async (reaction, eventMessage, guildConfig) => {
   if (reaction === "✅") {
     return await createGroupArray("✅", eventMessage)
 
@@ -34,9 +33,11 @@ const getArrayOfUsers = async (reaction, eventMessage) => {
     const yesUsersArray = await createGroupArray("✅", eventMessage)
     const noUsersArray = await createGroupArray("❌", eventMessage)
 
-    const guild = await Guild.findOne({ id: eventMessage.guild.id })
+    if (yesUsersArray === [] && noUsersArray === []) return []
+
+    if (!guildConfig) guildConfig = await Guild.findOne({ id: eventMessage.guild.id })
     await eventMessage.guild.members.fetch();
-    const memberRole = eventMessage.channel.guild.roles.cache.find(role => role.id === guild.memberRole)
+    const memberRole = eventMessage.channel.guild.roles.cache.find(role => role.id === guildConfig.memberRole)
 
     const membersMap = memberRole.members;
 
@@ -51,7 +52,6 @@ const getArrayOfUsers = async (reaction, eventMessage) => {
     // separate users who didnt react
     let toRemove = yesUsersArray.concat(noUsersArray);
     let undecidedArray = membersArray.filter(ar => !toRemove.find(rm => rm === ar));
-    if (!undecidedArray.length) undecidedArray = "No users";
 
     return undecidedArray
   }

@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 const config = require("../config.json");
 
 const validateResponseRegex = async (message, errMessage, conditions) => {
-  let response = ''
+  let response = ""
 
   const filter = m => m.author.id === message.author.id;
   await message.channel.awaitMessages(filter, { max: 1, time: 30000 })

@@ -24,8 +24,13 @@ const eventSchema = new mongoose.Schema({
     required: [true, "Provide mandatory."]
   },
   alerts: {
+    type: String,
+    enum: ["yes", "no"],
+    default: "yes"
+  },
+  active: {
     type: Boolean,
-    required: [true, "Provide alerts."]
+    default: true
   },
   guild: {
     type: mongoose.Schema.ObjectId,

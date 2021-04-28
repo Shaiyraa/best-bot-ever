@@ -1,11 +1,13 @@
-const config = require("./config.json");
-const token = require("./token.json");
 const Discord = require("discord.js");
 const fs = require("fs");
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const scheduleJobsInDB = require("./scheduleJobsInDB");
 dotenv.config({ path: './config.env' })
+const config = require("./config.json");
+const token = require("./token.json");
+
+const scheduleJobsInDB = require("./scheduleJobsInDB");
+const setListenersForEventMessages = require("./setListenersForEventMessages");
 
 const db = process.env.MONGO_URI || "mongodb://test:test@localhost:27017/bestbot"
 mongoose.connect(db, {
@@ -81,10 +83,12 @@ bot.on("message", async message => {
   }
 });
 
-bot.login(token.token);
+bot.login(token.token).then(() => {
+  scheduleJobsInDB(bot)
+  setListenersForEventMessages(bot)
+});
 
 // do stuff when server gets up
-scheduleJobsInDB(bot)
 
 
 

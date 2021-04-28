@@ -1,11 +1,19 @@
 const Discord = require("discord.js");
 const chooseEvent = require("./chooseEvent")
 const chooseGroup = require("./chooseGroup")
+
+const isGuildConfigInDB = require("../../utils/isGuildConfigInDB")
 const valiadateResponseRegex = require("../../utils/validateResponseRegex")
 
 const Event = require("../../db/eventSchema");
 
 module.exports.run = async (bot, message, args) => {
+
+  const guildConfig = await isGuildConfigInDB(message.guild.id)
+  if (!guildConfig) {
+    message.channel.send("Server config doesn't exist. Try ?config or ?help to get more info.");
+    return;
+  }
 
   let date = args[0];
 
@@ -33,7 +41,8 @@ module.exports.run = async (bot, message, args) => {
   let nextDayDate = new Date(date);
   nextDayDate.setDate(nextDayDate.getDate() + 1);
 
-  const eventArray = await Event.find({ date: { $gt: date, $lt: nextDayDate } });
+  let eventArray = await Event.find({ date: { $gt: date, $lt: nextDayDate }, active: true });
+  eventArray = eventArray.filter(event => event.guild.id === guildConfig.id)
 
   if (!eventArray.length) {
     message.channel.send("No events matching the parameters.");
@@ -41,10 +50,10 @@ module.exports.run = async (bot, message, args) => {
   };
 
   if (eventArray.length > 1) {
-    await chooseEvent(message, eventArray);
+    await chooseEvent(message, eventArray, guildConfig);
   } else {
     let eventId = eventArray[0].messageId;
-    await chooseGroup(message, eventId);
+    await chooseGroup(message, eventId, guildConfig);
   };
 };
 

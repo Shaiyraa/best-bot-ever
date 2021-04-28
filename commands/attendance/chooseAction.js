@@ -2,7 +2,7 @@ const config = require("../../config.json");
 const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 const tagUsersWithMessage = require("../../utils/tagUsersWithMessage")
 
-module.exports = async (message, event, groupMessage) => {
+module.exports = async (message, event, groupMessage, guildConfig) => {
 
   // get list of user tags from the message and create an array of of it or return if its empty
   if (groupMessage.embeds[0].description === "No users") return;
@@ -52,7 +52,8 @@ module.exports = async (message, event, groupMessage) => {
         break;
       };
       case config.alertEmoji: {
-        tagUsersWithMessage(message.guild, "Reminder to react:", `[Link to the event](${event.url})`, userTagsArray);
+        //sendReminder(message.guild, userTagsArray, "Reminder to react:", `[Link](${event.url})`, guildConfig)
+        tagUsersWithMessage(message.guild, "Reminder to react:", `[Link to the event](${event.url})`, userTagsArray, "", guildConfig);
         break;
       };
     };

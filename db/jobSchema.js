@@ -15,7 +15,7 @@ const jobSchema = new mongoose.Schema({
 jobSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'event',
-    select: 'guild date messageId'
+    select: 'messageId date alerts active guild'
   })
 
   next()
