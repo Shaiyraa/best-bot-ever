@@ -1,55 +1,101 @@
 const Discord = require("discord.js");
+const config = require("../../config.json");
+
 const Guild = require("../../db/guildSchema");
 
 const validateResponseRegex = require("../../utils/validateResponseRegex")
 
 module.exports.run = async (bot, message, args) => {
 
-  // TODO: write a similar function that will check if channel/role exists in the guild
+  const validateResponseRole = async (errMessage) => {
+    let response = ""
+
+    const filter = m => m.author.id === message.author.id;
+    await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
+      .then(m => {
+        m = m.first();
+        if (!m || m.content.startsWith(config.prefix)) {
+          return response = "exit"
+        }
+        response = m.content
+      })
+      .catch((err) => {
+        response = "exit"
+        console.log(err)
+      });
+
+    if (response === "exit") return response
+
+    response = response.replace(/([<>@&])+/g, "");
+
+    if (message.guild.roles.cache.get(response)) return response
+
+    if (response !== "exit") message.channel.send(errMessage)
+    return await validateResponseRole(errMessage)
+  }
+
+  const validateResponseChannel = async (errMessage) => {
+    let response = ""
+
+    const filter = m => m.author.id === message.author.id;
+    await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
+      .then(m => {
+        m = m.first();
+        if (!m || m.content.startsWith(config.prefix)) {
+          return response = "exit"
+        }
+        response = m.content
+      })
+      .catch((err) => {
+        response = "exit"
+        console.log(err)
+      });
+
+    if (response === "exit") return response
+
+    response = response.replace(/([<>&#])+/g, "");
+    if (message.guild.channels.cache.get(response)) return response
+
+    if (response !== "exit") message.channel.send(errMessage)
+    return await validateResponseChannel(errMessage)
+  }
+
+  // ask for memberRole
   message.channel.send("Provide a value for memberRole:")
-  let memberRoleTag = await validateResponseRegex(message, "Invalid date", /([A-Z]||[a-z])\w+/g)
-  if (memberRoleTag === "exit") {
-    return
-  }
-  memberRoleValue = memberRoleTag.replace(/([<>@&#])+/g, "");
+  let memberRoleTag = await validateResponseRole("Invalid role")
+  if (memberRoleTag === "exit") return
 
+  // ask for announcementsChannel
   message.channel.send("Provide a value for announcementsChannel:")
-  let announcementsChannelTag = await validateResponseRegex(message, "Invalid date", /([A-Z]||[a-z])\w+/g)
-  console.log(announcementsChannelTag)
-  if (announcementsChannelTag === "exit") {
-    return
-  }
-  announcementsChannelValue = announcementsChannelTag.replace(/([<>@&#])+/g, "");
+  let announcementsChannelTag = await validateResponseChannel("Invalid channel")
+  if (announcementsChannelTag === "exit") return
 
+  // ask for remindersChannel
   message.channel.send("Provide a value for remindersChannel:")
-  let remindersChannelTag = await validateResponseRegex(message, "Invalid date", /([A-Z]||[a-z])\w+/g)
+  let remindersChannelTag = await validateResponseChannel("Invalid channel")
   if (remindersChannelTag === "exit") {
     return
   }
-  remindersChannelValue = remindersChannelTag.replace(/([<>@&#])+/g, "");
 
+  // ask for commandsChannel
   message.channel.send("Provide a value for commandsChannel:")
-  let commandsChannelTag = await validateResponseRegex(message, "Invalid date", /([A-Z]||[a-z])\w+/g)
+  let commandsChannelTag = await validateResponseChannel("Invalid channel")
   if (commandsChannelTag === "exit") {
     return
   }
-  commandsChannelValue = commandsChannelTag.replace(/([<>@&#])+/g, "");
 
 
   let guild = await Guild.find({ id: message.channel.guild.id })
 
   if (!guild.length) {
-    console.log("asd")
-    const newGuild = await Guild.create({
+    await Guild.create({
       id: message.channel.guild.id,
       memberRole: memberRoleValue,
       announcementsChannel: announcementsChannelValue,
       remindersChannel: remindersChannelValue,
       commandsChannel: commandsChannelValue
     })
-      .catch(console.log)
   } else {
-    console.log(guild)
     guild = guild[0]
     guild.memberRole = memberRoleValue
     guild.announcementsChannel = announcementsChannelValue
@@ -65,37 +111,3 @@ module.exports.help = {
   name: "config",
   description: "Config command for GM and officers to set up stuff so other commands work properly"
 };
-
-//1. ?config
-  // ask for every parameter and corresponding values (one by one)
-
-//2. ?config memberRole
-  // ask for value
-
-//3. ?config memberRole member
-
-// create guild document if its not in db yet
-// insert value(s) for parameter(s)
-
-/*
-Config command for gm and officers to set up stuff so other commands work properly
-
-?config [config item] [value]
-
-Parameters:
-- memberRole
-- announcementsChannel
-- remindersChannel
-- commandsChannel
-and more coming probably
-
-cases:
-  - command has no params: ask for values for every config param
-  - command has 1 param: ask for value
-  - command has 2 params
-
-check if param exist and find id for provided value, then insert the ids to guild document:
-  - if guild document doesnt exist in db, create one and insert the ids
-  - if it exists, just insert the ids
-
-*/
