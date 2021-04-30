@@ -1,8 +1,11 @@
 const Discord = require("discord.js");
+const schedule = require('node-schedule');
 const config = require("../../config.json");
 const sendEmbedMessage = require("../../utils/sendEmbedMessage")
 const validateResponse = require("../../utils/validateResponse")
 const validateResponseRegex = require("../../utils/validateResponseRegex")
+const getArrayOfUsers = require("../../utils/getArrayOfUsers");
+const tagUsersWithMessage = require("../../utils/tagUsersWithMessage");
 
 module.exports = async (message, event, guildConfig) => {
   const embed = new Discord.MessageEmbed()
@@ -32,6 +35,9 @@ module.exports = async (message, event, guildConfig) => {
     return emojis.includes(reaction.emoji.name);
   };
 
+  const channel = await message.guild.channels.resolve(guildConfig.announcementsChannel)
+  let eventMessage = await channel.messages.fetch(event.messageId)
+
   const collector = reactionMessage.createReactionCollector(filter2, { max: 1, dispose: true });
   collector.on('collect', async (reaction, user) => {
 
@@ -42,7 +48,10 @@ module.exports = async (message, event, guildConfig) => {
         type = await validateResponse(message, "Invalid response (nodewar, siege, guildevent)", ['nodewar', 'siege', 'guildevent']);
         if (type === "exit") return;
 
-        event.type = type;
+        if (event.type !== type) {
+          event.type = type;
+        }
+
         message.channel.send(`Set event type to ${event.type}.`)
         break;
       };
@@ -52,7 +61,9 @@ module.exports = async (message, event, guildConfig) => {
         maxAttendance = await validateResponseRegex(message, "Invalid answer (1-100).", /^0*(?:[1-9][0-9]?|100)$/g);
         if (maxAttendance === "exit") return;
 
-        event.maxAttendance = maxAttendance;
+        if (event.maxAttendance !== maxAttendance) {
+          event.maxAttendance = maxAttendance;
+        }
         message.channel.send(`Set max. attendance to ${event.maxAttendance}.`)
 
         break;
@@ -68,7 +79,9 @@ module.exports = async (message, event, guildConfig) => {
         let minutes = event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes();
         date = new Date(date.split(/\D/g)[2], date.split(/\D/g)[1] - 1, date.split(/\D/g)[0], hours, minutes);
 
-        event.date = date;
+        if (event.date !== date) {
+          event.date = date;
+        }
         message.channel.send(`Set event date to ${event.date.toLocaleDateString("en-GB")} ${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}.`)
         break;
       };
@@ -79,7 +92,10 @@ module.exports = async (message, event, guildConfig) => {
         if (time === "exit") return;
 
         let date = new Date(event.date.getFullYear(), event.date.getMonth(), event.date.getDate(), time.split(":")[0], time.split(":")[1])
-        event.date = date;
+        if (event.date !== date) {
+          event.date = date;
+        }
+
         message.channel.send(`Set event date to ${event.date.toLocaleDateString("en-GB")} ${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}.`)
 
         break;
@@ -99,8 +115,10 @@ module.exports = async (message, event, guildConfig) => {
             console.log(err);
           });
 
+        if (event.content !== content) {
+          event.content = content
+        }
 
-        event.content = content
         message.channel.send("Content updated.");
         break;
       };
@@ -109,9 +127,38 @@ module.exports = async (message, event, guildConfig) => {
           event.alerts = "no"
         } else {
           event.alerts = "yes"
+
+          // schedule jobs
+          let tagUndecided = new Date(event.date);
+          tagUndecided.setHours(tagUndecided.getHours() - 2);
+
+          let tagYes = new Date(event.date);
+          tagYes.setHours(tagYes.getHours() - 1);
+
+          let tagYesVoice = new Date(event.date);
+          tagYesVoice.setMinutes(tagYesVoice.getMinutes() - 15);
+
+          schedule.scheduleJob(tagUndecided, async function () {
+            let usersArray = await getArrayOfUsers(config.undecidedEmoji, eventMessage);
+            if (!usersArray.length) return;
+            await tagUsersWithMessage(message.guild, "There's an event starting in 2 hours! Let your officers know if you're gonna be there.", `[Link to the event](${eventMessage.url})`, usersArray, guildConfig);
+          });
+
+          schedule.scheduleJob(tagYes, async function () {
+            let usersArray = await getArrayOfUsers(config.yesEmoji, eventMessage);
+            if (!usersArray.length) return;
+            await tagUsersWithMessage(message.guild, "There's an event starting in 1 hour! Time to buff up and prepare.", `[Link to the event](${eventMessage.url})`, usersArray, guildConfig);
+          });
+
+          schedule.scheduleJob(tagYesVoice, async function () {
+            let usersArray = await getArrayOfUsers(config.yesEmoji, eventMessage);
+            if (!usersArray.length) return;
+            await tagUsersWithMessage(message.guild, "Get in voice chat, the event starts in 15 minutes!", `[Link to the event](${eventMessage.url})`, usersArray, guildConfig);
+          });
         }
 
         message.channel.send(`Alerts are now set to ${event.alerts}.`);
+
         break;
       };
       case config.mandatoryEmoji: {
@@ -129,12 +176,11 @@ module.exports = async (message, event, guildConfig) => {
       .addField("Date:", event.date.toLocaleDateString("en-GB"), true)
       .addField("Time:", `${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}`, true)
       .addField("Details:", event.content, false)
-      .setColor(event.mandatory === "yes" ? "#ff0000" : "#58de49")
-      .setFooter(event.mandatory === "yes" ? "Mandatory" : "Non-mandatory")
+      .setColor(event.mandatory === true ? "#ff0000" : "#58de49")
+      .setFooter(event.mandatory === true ? "Mandatory" : "Non-mandatory")
 
     // replace old one
-    const channel = await message.guild.channels.resolve(guildConfig.announcementsChannel)
-    let eventMessage = await channel.messages.fetch(event.messageId)
+
 
     eventMessage.edit(newEmbed)
   });

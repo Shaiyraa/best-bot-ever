@@ -8,9 +8,9 @@ const Job = require("./db/jobSchema");
 
 const scheduleJobsInDB = async (bot) => {
   let jobsArray = await Job.find()
-  jobsArray = jobsArray.filter(job => job.date > Date.now() && job.event.active === true && job.event.alerts === "yes")
+  const alertsOnJobsArray = jobsArray.filter(job => job.date > Date.now() && job.event.active === true && job.event.alerts === "yes")
 
-  jobsArray.forEach(async job => {
+  alertsOnJobsArray.forEach(async job => {
     let title
     let type
     switch (job.event.date - job.date) {
@@ -36,10 +36,17 @@ const scheduleJobsInDB = async (bot) => {
       const eventMessage = await guild.channels.cache.get(job.event.guild.announcementsChannel).messages.fetch(job.event.messageId)
       let usersArray = await getArrayOfUsers(type, eventMessage, job.event.guild)
       if (!usersArray.length) usersArray = "No users"
-      await tagUsersWithMessage(guild, usersArray, title, "", job.event.guild)
-    }
-    );
+      await tagUsersWithMessage(guild, title, `[Link to the event](${eventMessage.url})`, usersArray, job.event.guild)
+    });
   });
+
+  const allActiveEvents = jobsArray.filter(job => job.date > Date.now() && job.event.active === true && (job.event.date - job.date) === 0)
+  allActiveEvents.forEach(async job => {
+    schedule.scheduleJob(job.date, async function () {
+      job.event.active = false
+      await job.event.save()
+    });
+  })
 }
 
 module.exports = scheduleJobsInDB

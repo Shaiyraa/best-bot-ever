@@ -26,8 +26,8 @@ module.exports.run = async (bot, message, args) => {
       .addField("Date:", event.date.toLocaleDateString("en-GB"), true)
       .addField("Time:", `${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}`, true)
       .addField("Details:", event.content, false)
-      .setColor(event.mandatory === "yes" ? "#ff0000" : "#58de49")
-      .setFooter(event.mandatory === "yes" ? "Mandatory" : "Non-mandatory")
+      .setColor(event.mandatory === true ? "#ff0000" : "#58de49")
+      .setFooter(event.mandatory === true ? "Mandatory" : "Non-mandatory")
 
     const reactionMessage = await message.channel.send(embed);
 

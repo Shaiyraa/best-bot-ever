@@ -246,21 +246,33 @@ module.exports.run = async (bot, message, args) => {
     schedule.scheduleJob(tagUndecided, async function () {
       let usersArray = await getArrayOfUsers(config.undecidedEmoji, reactionMessage);
       if (!usersArray.length) return;
-      await tagUsersWithMessage(message.guild, usersArray, "There's an event starting in 2 hours! Let your officers know if you're gonna be there.", "", guildConfig);
+      await tagUsersWithMessage(message.guild, "There's an event starting in 2 hours! Let your officers know if you're gonna be there.", `[Link to the event](${reactionMessage.url})`, usersArray, guildConfig);
     });
 
     schedule.scheduleJob(tagYes, async function () {
       let usersArray = await getArrayOfUsers(config.yesEmoji, reactionMessage);
       if (!usersArray.length) return;
-      await tagUsersWithMessage(message.guild, usersArray, "There's an event starting in 1 hour! Time to buff up and prepare.", "", guildConfig);
+      await tagUsersWithMessage(message.guild, "There's an event starting in 1 hour! Time to buff up and prepare.", `[Link to the event](${reactionMessage.url})`, usersArray, guildConfig);
     });
 
     schedule.scheduleJob(tagYesVoice, async function () {
       let usersArray = await getArrayOfUsers(config.yesEmoji, reactionMessage);
       if (!usersArray.length) return;
-      await tagUsersWithMessage(message.guild, usersArray, "Get in voice chat, the event starts in 15 minutes!", "", guildConfig);
+      await tagUsersWithMessage(message.guild, "Get in voice chat, the event starts in 15 minutes!", `[Link to the event](${reactionMessage.url})`, usersArray, guildConfig);
     });
   };
+
+  await Job.create({
+    event: doc._id,
+    date: params[0]
+  });
+
+  // set event to active: false after it ends
+  schedule.scheduleJob(params[0], async function () {
+    doc.active = false
+    await doc.save()
+  });
+
 };
 
 

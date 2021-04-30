@@ -53,7 +53,7 @@ module.exports = async (message, event, groupMessage, guildConfig) => {
       };
       case config.alertEmoji: {
         //sendReminder(message.guild, userTagsArray, "Reminder to react:", `[Link](${event.url})`, guildConfig)
-        tagUsersWithMessage(message.guild, "Reminder to react:", `[Link to the event](${event.url})`, userTagsArray, "", guildConfig);
+        tagUsersWithMessage(message.guild, "Reminder to react:", `[Link to the event](${event.url})`, userTagsArray, guildConfig);
         break;
       };
     };
