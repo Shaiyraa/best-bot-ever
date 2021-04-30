@@ -5,5 +5,14 @@
 		"undecidedEmoji": "❔",
 		"allGroupsEmoji": "🌐",
 		"messageEmoji": "✉️",
-		"alertEmoji": "❗"
+		"alertEmoji": "❗",
+		"deleteEmoji": "🚫",
+		"editEmoji": "📝",
+		"typeEmoji": "⚔️",
+		"dateEmoji": "📆",
+		"hourEmoji": "⏰",
+		"attendanceEmoji": "🧑‍🤝‍🧑",
+		"mandatoryEmoji": "❕",
+		"alertsEmoji": "📢",
+		"contentEmoji": "📰"
 	}

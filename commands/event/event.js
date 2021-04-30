@@ -207,6 +207,7 @@ module.exports.run = async (bot, message, args) => {
     maxAttendance: params[3],
     mandatory: params[4],
     alerts: params[5],
+    content,
     messageId,
     guild: guildConfig._id
   });

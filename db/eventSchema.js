@@ -32,6 +32,10 @@ const eventSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  content: {
+    type: String,
+    default: "no description"
+  },
   guild: {
     type: mongoose.Schema.ObjectId,
     ref: "Guild"
