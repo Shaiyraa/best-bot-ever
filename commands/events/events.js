@@ -5,6 +5,7 @@ const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 const config = require("../../config.json");
 const editEvent = require("./editEvent");
 const deleteEvent = require("./deleteEvent");
+const isAuthorOfficer = require("../../utils/isAuthorOfficer")
 
 module.exports.run = async (bot, message, args) => {
 
@@ -13,8 +14,15 @@ module.exports.run = async (bot, message, args) => {
     message.channel.send("Server config doesn't exist. Try ?config or ?help to get more info.");
     return;
   }
+  const isOfficer = await isAuthorOfficer(message, guildConfig)
+  if (!isOfficer) {
+    message.channel.send(`Only <@&${guildConfig.officerRole}> can user this command.`, {
+      "allowedMentions": { "users": [] }
+    });
+    return;
+  };
 
-  let events = await Event.find({ active: true }).sort({ date: 1 })
+  let events = await Event.find({ active: true, date: { $gt: Date.now() } }).sort({ date: 1 })
   events = events.filter(event => event.guild.id === guildConfig.id)
 
   if (!events.length) message.channel.send("There are no scheduled events.")
@@ -33,11 +41,8 @@ module.exports.run = async (bot, message, args) => {
 
     let emojis = [config.editEmoji, config.deleteEmoji];
 
-    if (event.date > Date.now()) {
-      await reactionMessage.react(config.editEmoji);
-    }
+    await reactionMessage.react(config.editEmoji);
     await reactionMessage.react(config.deleteEmoji);
-
 
     const filter = (reaction, user) => {
       if (!emojis.includes(reaction.emoji.name)) {
@@ -52,15 +57,12 @@ module.exports.run = async (bot, message, args) => {
 
       switch (reaction.emoji.name) {
         case config.deleteEmoji: {
-          deleteEvent(message, event, guildConfig)
+          await deleteEvent(message, event, guildConfig)
+          message.channel.send("Event has been deleted.")
           break;
         };
         case config.editEmoji: {
-          if (event.date < Date.now()) {
-            message.channel.send("You can't edit events that already took place.")
-            break;
-          }
-          editEvent(message, event, guildConfig);
+          await editEvent(message, event, guildConfig);
           break;
         };
       };
@@ -71,7 +73,7 @@ module.exports.run = async (bot, message, args) => {
 
 module.exports.help = {
   name: "events",
-  description: ""
+  description: "?events \nto look up scheduled events, edit and delete them"
 };
 
 /*

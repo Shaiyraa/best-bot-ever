@@ -9,6 +9,10 @@ const guildSchema = new mongoose.Schema({
     type: String,
     required: [true, "Provide memberRole name."]
   },
+  officerRole: {
+    type: String,
+    required: [true, "Provide officerRole name."]
+  },
   announcementsChannel: {
     type: String,
     required: [true, "Provide announcementsChannel name."]

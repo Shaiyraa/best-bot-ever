@@ -11,6 +11,7 @@ const validateResponse = require("../../utils/validateResponse");
 const getArrayOfUsers = require("../../utils/getArrayOfUsers");
 const tagUsersWithMessage = require("../../utils/tagUsersWithMessage");
 
+const isAuthorOfficer = require("../../utils/isAuthorOfficer")
 
 module.exports.run = async (bot, message, args) => {
 
@@ -18,6 +19,13 @@ module.exports.run = async (bot, message, args) => {
   const guildConfig = await isGuildConfigInDB(message.guild.id);
   if (!guildConfig) {
     message.channel.send("Server config doesn't exist. Try ?config or ?help to get more info.");
+    return;
+  };
+  const isOfficer = await isAuthorOfficer(message, guildConfig)
+  if (!isOfficer) {
+    message.channel.send(`Only <@&${guildConfig.officerRole}> can user this command.`, {
+      "allowedMentions": { "users": [] }
+    });
     return;
   };
 
@@ -50,6 +58,34 @@ module.exports.run = async (bot, message, args) => {
     return false;
   };
 
+  const validateContent = async () => {
+    let response = ""
+
+    const filter = m => m.author.id === message.author.id;
+    await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
+      .then(m => {
+        m = m.first();
+        if (!m || m.content.startsWith(config.prefix)) {
+          return response = "exit"
+        }
+        response = m.content
+      })
+      .catch((err) => {
+        response = "exit"
+        console.log(err)
+      });
+
+    if (response.length <= 1024 && response.length > 0 || response === "exit") {
+      return response
+    }
+
+    message.channel.send("Your message is too long (max. 1024 characters allowed) or the format is invalid!")
+    return await validateContent()
+  };
+
+
+
+
   let params = [];
 
   if (args.length > 0) {
@@ -77,12 +113,18 @@ module.exports.run = async (bot, message, args) => {
     // ask for date
     message.channel.send("What is the date of the event?");
     params[0] = await validateResponseRegex(message, "Invalid date format", /^(?:(?:31(\/|-|.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/g);
-    if (params[0] === "exit") return;
+    if (params[0] === "exit") {
+      message.channel.send("Bye!");
+      return;
+    }
 
     // ask for hour
     message.channel.send('What time is the event?');
     params[1] = await validateResponseRegex(message, "Invalid time.", /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/g);
-    if (params[1] === "exit") return;
+    if (params[1] === "exit") {
+      message.channel.send("Bye!");
+      return;
+    }
 
     params[0] = new Date(params[0].split(/\D/g)[2], params[0].split(/\D/g)[1] - 1, params[0].split(/\D/g)[0], params[1].split(":")[0], params[1].split(":")[1]);
     const alreadyCreated = await isAlreadyCreated();
@@ -93,46 +135,56 @@ module.exports.run = async (bot, message, args) => {
     // ask for type
     message.channel.send('What is the type of the event? Possible types: "nodewar", "siege", "guildevent".');
     params[2] = await validateResponse(message, "Invalid response (nodewar, siege, guildevent)", ['nodewar', 'siege', 'guildevent']);
-    if (params[2] === "exit") return;
+    if (params[2] === "exit") {
+      message.channel.send("Bye!");
+      return;
+    }
 
     // ask for maxAttendance
     message.channel.send("What is the max attendance of the event?");
     params[3] = await validateResponseRegex(message, "Invalid answer (1-100).", /^0*(?:[1-9][0-9]?|100)$/g);
-    if (params[3] === "exit") return;
+    if (params[3] === "exit") {
+      message.channel.send("Bye!");
+      return;
+    }
 
     // ask for mandatory
-    message.channel.send("Is the event mandatory?");
+    message.channel.send("Is the event mandatory (yes/no)?");
     params[4] = await validateResponse(message, "Invalid answer (yes/no).", ["yes", "no"]);
-    if (params[4] === "exit") return;
+    if (params[4] === "exit") {
+      message.channel.send("Bye!");
+      return;
+    }
 
     // ask for alerts
-    message.channel.send("Do you want to enable automatic alerts?");
+    message.channel.send("Do you want to enable automatic alerts (yes/no)?");
     params[5] = await validateResponse(message, "Invalid answer (yes/no).", ["yes", "no"]);
-    if (params[5] === "exit") return;
+    if (params[5] === "exit") {
+      message.channel.send("Bye!");
+      return;
+    }
   };
 
   // ask for content
   let content = "no description";
   message.channel.send("Do you want to create a custom message (yes/no)?");
-  const contentResponse = await validateResponse(message, "Invalid answer (yes/no).", ["yes", "no"]);
+  const contentResponse = await validateResponse(message, "Invalid answer (Valid options: yes/no).", ["yes", "no"]);
 
   switch (contentResponse) {
     case "exit": {
-      return
-    };
+      message.channel.send("Bye!");
+      return;
+    }
     case "yes": {
-      message.channel.send("Type in the content:")
-      const filter = m => m.author.id === message.author.id;
-      await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
-        .then(m => {
-          m = m.first();
-          content = m.content.toLowerCase();
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+      message.channel.send("Type in the content (max. 1024 characters allowed):")
+      content = await validateContent()
     };
   };
+
+  if (content === "exit") {
+    message.channel.send("Bye!");
+    return;
+  }
 
   // SEND THE MESSAGE WITH REACTION ICONS
   const embed = new Discord.MessageEmbed()
@@ -212,6 +264,10 @@ module.exports.run = async (bot, message, args) => {
     guild: guildConfig._id
   });
 
+  const eventCreatedEmbed = new Discord.MessageEmbed()
+    .setTitle("Event has been created")
+    .setDescription(`[Link to the event post](${reactionMessage.url})`)
+  message.channel.send(eventCreatedEmbed)
 
   // CREATE ALERTS 
 
@@ -278,6 +334,6 @@ module.exports.run = async (bot, message, args) => {
 
 module.exports.help = {
   name: "event",
-  description: "set new event"
+  description: "?event \nfor setting up an event, bot will ask about details \n?event [dd/mm/yyyy] \nfor a quick nodewar creation (automatic alerts on, mandatory)"
 };
 

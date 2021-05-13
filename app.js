@@ -25,6 +25,16 @@ mongoose.connect(db, {
 // create bot
 const bot = new Discord.Client({ disableEveryone: true });
 
+bot.on("ready", () => {
+  bot.user.setActivity('type ?help', { type: 'PLAYING' })
+  //bot.user.setActivity('Type ?help', { type: 'CUSTOM_STATUS' })
+
+
+})
+scheduleJobsInDB(bot).catch(console.log)
+setListenersForEventMessages(bot).catch(console.log)
+
+
 // create commands
 bot.commands = new Discord.Collection();
 
@@ -57,6 +67,10 @@ bot.on("message", async message => {
   if (message.author.bot) return;
   if (message.channel.type === "dm") return;
 
+  if (message.content?.toLowerCase() === "good bot") {
+    message.channel.send("^^");
+    return;
+  }
   let prefix = config.prefix;
 
   //Check for prefix
@@ -83,12 +97,10 @@ bot.on("message", async message => {
   }
 });
 
-bot.login(token.token).then(() => {
-  scheduleJobsInDB(bot)
-  setListenersForEventMessages(bot)
-});
 
-// do stuff when server gets up
+bot.login(token.token)
+
+
 
 
 

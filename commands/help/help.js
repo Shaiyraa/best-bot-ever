@@ -3,7 +3,6 @@ const fs = require("fs");
 const sendEmbedMessage = require("../../utils/sendEmbedMessage")
 
 module.exports.run = async (bot, message, args) => {
-
   message.channel.send("Available commands: \n");
 
   fs.readdir("./commands/", async (err, files) => {
@@ -18,22 +17,20 @@ module.exports.run = async (bot, message, args) => {
       let props = require(`../${f}/${f}.js`);
       return {
         name: props.help.name || '',
-        description: props.help.description || '',
-        usage: props.help.usage || ''
+        description: props.help.description || ''
       };
     });
 
     let commandsArray = [];
     results.forEach(item => {
-      commandsArray.push(`**${item.name}** \n${item.description} \n${item.usage}`);
+      commandsArray.push(`\n**${item.name}** \n${item.description}`);
     });
-
+    commandsArray.push("\nwhen you want to exit a command at any point, type **exit**");
     await sendEmbedMessage(message.channel, "Available commands:", commandsArray)
   });
 };
 
 module.exports.help = {
   name: "help",
-  description: "displays list of available commands",
-  usage: ""
+  description: "?help \nto display the list of available commands"
 };

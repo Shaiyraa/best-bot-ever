@@ -46,7 +46,10 @@ module.exports = async (message, event, guildConfig) => {
 
         message.channel.send('What is the type of the event? Possible types: "nodewar", "siege", "guildevent".');
         type = await validateResponse(message, "Invalid response (nodewar, siege, guildevent)", ['nodewar', 'siege', 'guildevent']);
-        if (type === "exit") return;
+        if (type === "exit") {
+          message.channel.send("Bye!");
+          return;
+        }
 
         if (event.type !== type) {
           event.type = type;
@@ -59,7 +62,10 @@ module.exports = async (message, event, guildConfig) => {
 
         message.channel.send("What is the max attendance of the event?");
         maxAttendance = await validateResponseRegex(message, "Invalid answer (1-100).", /^0*(?:[1-9][0-9]?|100)$/g);
-        if (maxAttendance === "exit") return;
+        if (maxAttendance === "exit") {
+          message.channel.send("Bye!");
+          return;
+        }
 
         if (event.maxAttendance !== maxAttendance) {
           event.maxAttendance = maxAttendance;
@@ -72,7 +78,10 @@ module.exports = async (message, event, guildConfig) => {
 
         message.channel.send("What is the date of the event?");
         let date = await validateResponseRegex(message, "Invalid date format", /^(?:(?:31(\/|-|.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|.)(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/|-|.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/g);
-        if (date === "exit") return;
+        if (date === "exit") {
+          message.channel.send("Bye!");
+          return;
+        }
 
         // create a new Date 
         let hours = event.date.getHours();
@@ -89,7 +98,10 @@ module.exports = async (message, event, guildConfig) => {
 
         message.channel.send('What time is the event?');
         time = await validateResponseRegex(message, "Invalid time.", /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/g);
-        if (time === "exit") return;
+        if (time === "exit") {
+          message.channel.send("Bye!");
+          return;
+        }
 
         let date = new Date(event.date.getFullYear(), event.date.getMonth(), event.date.getDate(), time.split(":")[0], time.split(":")[1])
         if (event.date !== date) {
@@ -114,6 +126,11 @@ module.exports = async (message, event, guildConfig) => {
           .catch((err) => {
             console.log(err);
           });
+
+        if (content === "exit") {
+          message.channel.send("Bye!");
+          return;
+        }
 
         if (event.content !== content) {
           event.content = content

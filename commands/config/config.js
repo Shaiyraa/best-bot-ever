@@ -6,6 +6,10 @@ const Guild = require("../../db/guildSchema");
 const validateResponseRegex = require("../../utils/validateResponseRegex")
 
 module.exports.run = async (bot, message, args) => {
+  if (!message.member.hasPermission("ADMINISTRATOR")) {
+    message.channel.send("Only administrators can this command.")
+    return
+  }
 
   const validateResponseRole = async (errMessage) => {
     let response = ""
@@ -61,27 +65,42 @@ module.exports.run = async (bot, message, args) => {
   }
 
   // ask for memberRole
-  message.channel.send("Provide a value for memberRole:")
+  message.channel.send("Tag guild member role:")
   let memberRoleTag = await validateResponseRole("Invalid role")
-  if (memberRoleTag === "exit") return
+  if (memberRoleTag === "exit") {
+    message.channel.send("Bye!");
+    return;
+  }
 
+  // ask for officerRole
+  message.channel.send("Tag guild officer role:")
+  let officerRoleTag = await validateResponseRole("Invalid role")
+  if (officerRoleTag === "exit") {
+    message.channel.send("Bye!");
+    return;
+  }
   // ask for announcementsChannel
-  message.channel.send("Provide a value for announcementsChannel:")
+  message.channel.send("Tag the channel where you want your event announcements to pop up:")
   let announcementsChannelTag = await validateResponseChannel("Invalid channel")
-  if (announcementsChannelTag === "exit") return
+  if (announcementsChannelTag === "exit") {
+    message.channel.send("Bye!");
+    return;
+  }
 
   // ask for remindersChannel
-  message.channel.send("Provide a value for remindersChannel:")
+  message.channel.send("Tag the channel where you want to see reminders for events:")
   let remindersChannelTag = await validateResponseChannel("Invalid channel")
   if (remindersChannelTag === "exit") {
-    return
+    message.channel.send("Bye!");
+    return;
   }
 
   // ask for commandsChannel
-  message.channel.send("Provide a value for commandsChannel:")
+  message.channel.send("Tag the channel for bot commands:")
   let commandsChannelTag = await validateResponseChannel("Invalid channel")
   if (commandsChannelTag === "exit") {
-    return
+    message.channel.send("Bye!");
+    return;
   }
 
 
@@ -90,17 +109,19 @@ module.exports.run = async (bot, message, args) => {
   if (!guild.length) {
     await Guild.create({
       id: message.channel.guild.id,
-      memberRole: memberRoleValue,
-      announcementsChannel: announcementsChannelValue,
-      remindersChannel: remindersChannelValue,
-      commandsChannel: commandsChannelValue
+      memberRole: memberRoleTag,
+      officerRole: officerRoleTag,
+      announcementsChannel: announcementsChannelTag,
+      remindersChannel: remindersChannelTag,
+      commandsChannel: commandsChannelTag
     })
   } else {
     guild = guild[0]
-    guild.memberRole = memberRoleValue
-    guild.announcementsChannel = announcementsChannelValue
-    guild.remindersChannel = remindersChannelValue
-    guild.commandsChannel = commandsChannelValue
+    guild.memberRole = memberRoleTag
+    guild.officerRole = officerRoleTag
+    guild.announcementsChannel = announcementsChannelTag
+    guild.remindersChannel = remindersChannelTag
+    guild.commandsChannel = commandsChannelTag
     await guild.save()
   }
 
@@ -109,5 +130,5 @@ module.exports.run = async (bot, message, args) => {
 
 module.exports.help = {
   name: "config",
-  description: "Config command for GM and officers to set up stuff so other commands work properly"
+  description: "?config \nbot will ask for guild member role and channels to send messages on, so other commands can work properly"
 };

@@ -22,7 +22,7 @@ const validateResponse = async (message, errMessage, conditions) => {
     return response
   }
 
-  if (response !== "exit") message.channel.send(errMessage)
+  message.channel.send(errMessage)
   return await validateResponse(message, errMessage, conditions)
 };
 
