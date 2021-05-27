@@ -35,7 +35,7 @@ module.exports = async (message, eventId, guildConfig) => {
       reaction === config.undecidedEmoji ? title = "Here are the people that didn't react:" : title = `Here are the people that reacted with ${reaction}:`;
 
       let usersArray = await getArrayOfUsers(reaction, eventMessage, guildConfig);
-      if (!usersArray.length) usersArray = "No users"
+      if (!usersArray.length) usersArray = "No users";
       const reactionGroupMessage = await sendEmbedMessage(message.channel, title, usersArray);
       chooseAction(message, eventMessage, reactionGroupMessage, guildConfig);
     }
@@ -56,5 +56,3 @@ module.exports = async (message, eventId, guildConfig) => {
     };
   });
 };
-
-

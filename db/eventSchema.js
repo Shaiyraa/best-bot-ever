@@ -46,10 +46,10 @@ eventSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'guild',
     select: 'id memberRole announcementsChannel remindersChannel commandsChannel'
-  })
+  });
 
-  next()
-})
+  next();
+});
 
 const Event = mongoose.model('Event', eventSchema);
 

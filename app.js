@@ -2,12 +2,13 @@ const Discord = require("discord.js");
 const fs = require("fs");
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-dotenv.config({ path: './config.env' })
 const config = require("./config.json");
 const token = require("./token.json");
 
 const scheduleJobsInDB = require("./scheduleJobsInDB");
 const setListenersForEventMessages = require("./setListenersForEventMessages");
+
+dotenv.config({ path: './config.env' })
 
 const db = process.env.MONGO_URI || "mongodb://test:test@localhost:27017/bestbot"
 mongoose.connect(db, {
@@ -15,7 +16,7 @@ mongoose.connect(db, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false
-}).then(connection => {
+}).then(() => {
   console.log("Connection to db established.")
 }).catch(err => {
   console.log(err)
@@ -27,13 +28,10 @@ const bot = new Discord.Client({ disableEveryone: true });
 
 bot.on("ready", () => {
   bot.user.setActivity('type ?help', { type: 'PLAYING' })
-  //bot.user.setActivity('Type ?help', { type: 'CUSTOM_STATUS' })
-
-
 })
+
 scheduleJobsInDB(bot).catch(console.log)
 setListenersForEventMessages(bot).catch(console.log)
-
 
 // create commands
 bot.commands = new Discord.Collection();
@@ -99,17 +97,3 @@ bot.on("message", async message => {
 
 
 bot.login(token.token)
-
-
-
-
-
-
-
-// bot.on('guildMemberAdd', member => {
-//   console.log('User' + member.user.tag + 'has joined the server!');
-// })
-
-// bot.on('guildMemberRemove', member => {
-//   console.log('User' + member.user.tag + 'has left the server!');
-// })

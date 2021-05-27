@@ -1,17 +1,14 @@
 const Discord = require("discord.js");
 const schedule = require('node-schedule');
 const config = require("../../config.json");
-
-const Event = require("../../db/eventSchema");
-const Job = require("../../db/jobSchema");
-
 const isGuildConfigInDB = require("../../utils/isGuildConfigInDB");
 const validateResponseRegex = require("../../utils/validateResponseRegex");
 const validateResponse = require("../../utils/validateResponse");
 const getArrayOfUsers = require("../../utils/getArrayOfUsers");
 const tagUsersWithMessage = require("../../utils/tagUsersWithMessage");
-
-const isAuthorOfficer = require("../../utils/isAuthorOfficer")
+const isAuthorOfficer = require("../../utils/isAuthorOfficer");
+const Event = require("../../db/eventSchema");
+const Job = require("../../db/jobSchema");
 
 module.exports.run = async (bot, message, args) => {
 
@@ -21,7 +18,7 @@ module.exports.run = async (bot, message, args) => {
     message.channel.send("Server config doesn't exist. Try ?config or ?help to get more info.");
     return;
   };
-  const isOfficer = await isAuthorOfficer(message, guildConfig)
+  const isOfficer = await isAuthorOfficer(message, guildConfig);
   if (!isOfficer) {
     message.channel.send(`Only <@&${guildConfig.officerRole}> can user this command.`, {
       "allowedMentions": { "users": [] }
@@ -59,28 +56,28 @@ module.exports.run = async (bot, message, args) => {
   };
 
   const validateContent = async () => {
-    let response = ""
+    let response = "";
 
     const filter = m => m.author.id === message.author.id;
     await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
       .then(m => {
         m = m.first();
         if (!m || m.content.startsWith(config.prefix)) {
-          return response = "exit"
-        }
-        response = m.content
+          return response = "exit";
+        };
+        response = m.content;
       })
       .catch((err) => {
-        response = "exit"
-        console.log(err)
+        response = "exit";
+        console.log(err);
       });
 
     if (response.length <= 1024 && response.length > 0 || response === "exit") {
-      return response
-    }
+      return response;
+    };
 
-    message.channel.send("Your message is too long (max. 1024 characters allowed) or the format is invalid!")
-    return await validateContent()
+    message.channel.send("Your message is too long (max. 1024 characters allowed) or the format is invalid!");
+    return await validateContent();
   };
 
 
@@ -116,7 +113,7 @@ module.exports.run = async (bot, message, args) => {
     if (params[0] === "exit") {
       message.channel.send("Bye!");
       return;
-    }
+    };
 
     // ask for hour
     message.channel.send('What time is the event?');
@@ -124,7 +121,7 @@ module.exports.run = async (bot, message, args) => {
     if (params[1] === "exit") {
       message.channel.send("Bye!");
       return;
-    }
+    };
 
     params[0] = new Date(params[0].split(/\D/g)[2], params[0].split(/\D/g)[1] - 1, params[0].split(/\D/g)[0], params[1].split(":")[0], params[1].split(":")[1]);
     const alreadyCreated = await isAlreadyCreated();
@@ -138,7 +135,7 @@ module.exports.run = async (bot, message, args) => {
     if (params[2] === "exit") {
       message.channel.send("Bye!");
       return;
-    }
+    };
 
     // ask for maxAttendance
     message.channel.send("What is the max attendance of the event?");
@@ -146,7 +143,7 @@ module.exports.run = async (bot, message, args) => {
     if (params[3] === "exit") {
       message.channel.send("Bye!");
       return;
-    }
+    };
 
     // ask for mandatory
     message.channel.send("Is the event mandatory (yes/no)?");
@@ -154,7 +151,7 @@ module.exports.run = async (bot, message, args) => {
     if (params[4] === "exit") {
       message.channel.send("Bye!");
       return;
-    }
+    };
 
     // ask for alerts
     message.channel.send("Do you want to enable automatic alerts (yes/no)?");
@@ -162,7 +159,7 @@ module.exports.run = async (bot, message, args) => {
     if (params[5] === "exit") {
       message.channel.send("Bye!");
       return;
-    }
+    };
   };
 
   // ask for content
@@ -176,15 +173,15 @@ module.exports.run = async (bot, message, args) => {
       return;
     }
     case "yes": {
-      message.channel.send("Type in the content (max. 1024 characters allowed):")
-      content = await validateContent()
+      message.channel.send("Type in the content (max. 1024 characters allowed):");
+      content = await validateContent();
     };
   };
 
   if (content === "exit") {
     message.channel.send("Bye!");
     return;
-  }
+  };
 
   // SEND THE MESSAGE WITH REACTION ICONS
   const embed = new Discord.MessageEmbed()
@@ -223,11 +220,11 @@ module.exports.run = async (bot, message, args) => {
     switch (reaction.emoji.name) {
       case config.yesEmoji: {
         // remove reaction if list is full
-        let yesReactionMap = reactionMessage.reactions.resolve(config.yesEmoji)
+        let yesReactionMap = reactionMessage.reactions.resolve(config.yesEmoji);
 
         if (yesReactionMap.count > params[3] + 1) {
-          user.send("The list is full.")
-          yesReactionMap.users.remove(user.id)
+          user.send("The list is full.");
+          yesReactionMap.users.remove(user.id);
           break;
         }
 
@@ -266,8 +263,8 @@ module.exports.run = async (bot, message, args) => {
 
   const eventCreatedEmbed = new Discord.MessageEmbed()
     .setTitle("Event has been created")
-    .setDescription(`[Link to the event post](${reactionMessage.url})`)
-  message.channel.send(eventCreatedEmbed)
+    .setDescription(`[Link to the event post](${reactionMessage.url})`);
+  message.channel.send(eventCreatedEmbed);
 
   // CREATE ALERTS 
 
@@ -325,8 +322,8 @@ module.exports.run = async (bot, message, args) => {
 
   // set event to active: false after it ends
   schedule.scheduleJob(params[0], async function () {
-    doc.active = false
-    await doc.save()
+    doc.active = false;
+    await doc.save();
   });
 
 };

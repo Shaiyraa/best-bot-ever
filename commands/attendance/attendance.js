@@ -1,21 +1,19 @@
 const Discord = require("discord.js");
-const chooseEvent = require("./chooseEvent")
-const chooseGroup = require("./chooseGroup")
-
-const isGuildConfigInDB = require("../../utils/isGuildConfigInDB")
-const valiadateResponseRegex = require("../../utils/validateResponseRegex")
-const isAuthorOfficer = require("../../utils/isAuthorOfficer")
-
+const chooseEvent = require("./chooseEvent");
+const chooseGroup = require("./chooseGroup");
+const valiadateResponseRegex = require("../../utils/validateResponseRegex");
+const isGuildConfigInDB = require("../../utils/isGuildConfigInDB");
+const isAuthorOfficer = require("../../utils/isAuthorOfficer");
 const Event = require("../../db/eventSchema");
 
 module.exports.run = async (bot, message, args) => {
 
-  const guildConfig = await isGuildConfigInDB(message.guild.id)
+  const guildConfig = await isGuildConfigInDB(message.guild.id);
   if (!guildConfig) {
     message.channel.send("Server config doesn't exist. Try ?config or ?help to get more info.");
     return;
-  }
-  const isOfficer = await isAuthorOfficer(message, guildConfig)
+  };
+  const isOfficer = await isAuthorOfficer(message, guildConfig);
   if (!isOfficer) {
     message.channel.send(`Only <@&${guildConfig.officerRole}> can user this command.`, {
       "allowedMentions": { "users": [] }
@@ -51,7 +49,7 @@ module.exports.run = async (bot, message, args) => {
   nextDayDate.setDate(nextDayDate.getDate() + 1);
 
   let eventArray = await Event.find({ date: { $gt: date, $lt: nextDayDate }, active: true });
-  eventArray = eventArray.filter(event => event.guild.id === guildConfig.id)
+  eventArray = eventArray.filter(event => event.guild.id === guildConfig.id);
 
   if (!eventArray.length) {
     message.channel.send("No events matching the parameters.");

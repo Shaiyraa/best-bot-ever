@@ -1,9 +1,9 @@
 const Discord = require("discord.js");
 const schedule = require('node-schedule');
 const config = require("../../config.json");
-const sendEmbedMessage = require("../../utils/sendEmbedMessage")
-const validateResponse = require("../../utils/validateResponse")
-const validateResponseRegex = require("../../utils/validateResponseRegex")
+const sendEmbedMessage = require("../../utils/sendEmbedMessage");
+const validateResponse = require("../../utils/validateResponse");
+const validateResponseRegex = require("../../utils/validateResponseRegex");
 const getArrayOfUsers = require("../../utils/getArrayOfUsers");
 const tagUsersWithMessage = require("../../utils/tagUsersWithMessage");
 
@@ -20,10 +20,10 @@ module.exports = async (message, event, guildConfig) => {
     .setColor("#fced5d");
   const reactionMessage = await message.channel.send(embed);
 
-  const emojis = [config.typeEmoji, config.attendanceEmoji, config.dateEmoji, config.hourEmoji, config.contentEmoji, config.alertsEmoji, config.mandatoryEmoji]
+  const emojis = [config.typeEmoji, config.attendanceEmoji, config.dateEmoji, config.hourEmoji, config.contentEmoji, config.alertsEmoji, config.mandatoryEmoji];
   for (item of emojis) {
-    await reactionMessage.react(item)
-  }
+    await reactionMessage.react(item);
+  };
 
 
   // CREATE LISTENER 
@@ -35,8 +35,8 @@ module.exports = async (message, event, guildConfig) => {
     return emojis.includes(reaction.emoji.name);
   };
 
-  const channel = await message.guild.channels.resolve(guildConfig.announcementsChannel)
-  let eventMessage = await channel.messages.fetch(event.messageId)
+  const channel = await message.guild.channels.resolve(guildConfig.announcementsChannel);
+  let eventMessage = await channel.messages.fetch(event.messageId);
 
   const collector = reactionMessage.createReactionCollector(filter2, { max: 1, dispose: true });
   collector.on('collect', async (reaction, user) => {
@@ -49,13 +49,13 @@ module.exports = async (message, event, guildConfig) => {
         if (type === "exit") {
           message.channel.send("Bye!");
           return;
-        }
+        };
 
         if (event.type !== type) {
           event.type = type;
-        }
+        };
 
-        message.channel.send(`Set event type to ${event.type}.`)
+        message.channel.send(`Set event type to ${event.type}.`);
         break;
       };
       case config.attendanceEmoji: {
@@ -65,12 +65,12 @@ module.exports = async (message, event, guildConfig) => {
         if (maxAttendance === "exit") {
           message.channel.send("Bye!");
           return;
-        }
+        };
 
         if (event.maxAttendance !== maxAttendance) {
           event.maxAttendance = maxAttendance;
-        }
-        message.channel.send(`Set max. attendance to ${event.maxAttendance}.`)
+        };
+        message.channel.send(`Set max. attendance to ${event.maxAttendance}.`);
 
         break;
       };
@@ -81,7 +81,7 @@ module.exports = async (message, event, guildConfig) => {
         if (date === "exit") {
           message.channel.send("Bye!");
           return;
-        }
+        };
 
         // create a new Date 
         let hours = event.date.getHours();
@@ -90,8 +90,8 @@ module.exports = async (message, event, guildConfig) => {
 
         if (event.date !== date) {
           event.date = date;
-        }
-        message.channel.send(`Set event date to ${event.date.toLocaleDateString("en-GB")} ${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}.`)
+        };
+        message.channel.send(`Set event date to ${event.date.toLocaleDateString("en-GB")} ${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}.`);
         break;
       };
       case config.hourEmoji: {
@@ -101,14 +101,14 @@ module.exports = async (message, event, guildConfig) => {
         if (time === "exit") {
           message.channel.send("Bye!");
           return;
-        }
+        };
 
-        let date = new Date(event.date.getFullYear(), event.date.getMonth(), event.date.getDate(), time.split(":")[0], time.split(":")[1])
+        let date = new Date(event.date.getFullYear(), event.date.getMonth(), event.date.getDate(), time.split(":")[0], time.split(":")[1]);
         if (event.date !== date) {
           event.date = date;
-        }
+        };
 
-        message.channel.send(`Set event date to ${event.date.toLocaleDateString("en-GB")} ${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}.`)
+        message.channel.send(`Set event date to ${event.date.toLocaleDateString("en-GB")} ${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}.`);
 
         break;
       };
@@ -116,7 +116,7 @@ module.exports = async (message, event, guildConfig) => {
 
         let content = "no description";
 
-        message.channel.send("Type in the content:")
+        message.channel.send("Type in the content:");
         const filter = m => m.author.id === message.author.id;
         await message.channel.awaitMessages(filter, { max: 1, time: 30000 })
           .then(m => {
@@ -130,20 +130,20 @@ module.exports = async (message, event, guildConfig) => {
         if (content === "exit") {
           message.channel.send("Bye!");
           return;
-        }
+        };
 
         if (event.content !== content) {
-          event.content = content
-        }
+          event.content = content;
+        };
 
         message.channel.send("Content updated.");
         break;
       };
       case config.alertsEmoji: {
         if (event.alerts === "yes") {
-          event.alerts = "no"
+          event.alerts = "no";
         } else {
-          event.alerts = "yes"
+          event.alerts = "yes";
 
           // schedule jobs
           let tagUndecided = new Date(event.date);
@@ -172,19 +172,18 @@ module.exports = async (message, event, guildConfig) => {
             if (!usersArray.length) return;
             await tagUsersWithMessage(message.guild, "Get in voice chat, the event starts in 15 minutes!", `[Link to the event](${eventMessage.url})`, usersArray, guildConfig);
           });
-        }
+        };
 
         message.channel.send(`Alerts are now set to ${event.alerts}.`);
-
         break;
       };
       case config.mandatoryEmoji: {
-        event.mandatory = !event.mandatory
+        event.mandatory = !event.mandatory;
         message.channel.send(`Is event mandatory: ${event.mandatory}.`);
         break;
       };
     };
-    await event.save()
+    await event.save();
 
     // create a new embed
     const newEmbed = new Discord.MessageEmbed()
@@ -194,21 +193,9 @@ module.exports = async (message, event, guildConfig) => {
       .addField("Time:", `${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}`, true)
       .addField("Details:", event.content, false)
       .setColor(event.mandatory === true ? "#ff0000" : "#58de49")
-      .setFooter(event.mandatory === true ? "Mandatory" : "Non-mandatory")
+      .setFooter(event.mandatory === true ? "Mandatory" : "Non-mandatory");
 
     // replace old one
-
-
-    eventMessage.edit(newEmbed)
+    eventMessage.edit(newEmbed);
   });
-
-}
-
-/*
-TODO: logs:
-  - changed field
-  - old value
-  - new value
-  - timestamp
-  - user
-*/
+};

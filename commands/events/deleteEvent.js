@@ -1,7 +1,7 @@
 
 module.exports = async (message, event, guildConfig) => {
 
-  message.channel.send("Type \"yes\" to confirm.")
+  message.channel.send("Type \"yes\" to confirm.");
 
   const filter = m => m.author.id === message.author.id;
   await message.channel.awaitMessages(filter, { max: 1, time: 30000 })

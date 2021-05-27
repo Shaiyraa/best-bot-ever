@@ -1,6 +1,6 @@
 const Discord = require("discord.js");
 const fs = require("fs");
-const sendEmbedMessage = require("../../utils/sendEmbedMessage")
+const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 
 module.exports.run = async (bot, message, args) => {
   message.channel.send("Available commands: \n");
@@ -26,7 +26,7 @@ module.exports.run = async (bot, message, args) => {
       commandsArray.push(`\n**${item.name}** \n${item.description}`);
     });
     commandsArray.push("\nwhen you want to exit a command at any point, type **exit**");
-    await sendEmbedMessage(message.channel, "Available commands:", commandsArray)
+    await sendEmbedMessage(message.channel, "Available commands:", commandsArray);
   });
 };
 

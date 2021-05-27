@@ -1,20 +1,20 @@
 const Discord = require("discord.js");
-const isGuildConfigInDB = require("../../utils/isGuildConfigInDB")
-const Event = require("../../db/eventSchema");
-const sendEmbedMessage = require("../../utils/sendEmbedMessage");
 const config = require("../../config.json");
 const editEvent = require("./editEvent");
 const deleteEvent = require("./deleteEvent");
-const isAuthorOfficer = require("../../utils/isAuthorOfficer")
+const isGuildConfigInDB = require("../../utils/isGuildConfigInDB");
+const sendEmbedMessage = require("../../utils/sendEmbedMessage");
+const isAuthorOfficer = require("../../utils/isAuthorOfficer");
+const Event = require("../../db/eventSchema");
 
 module.exports.run = async (bot, message, args) => {
 
-  const guildConfig = await isGuildConfigInDB(message.guild.id)
+  const guildConfig = await isGuildConfigInDB(message.guild.id);
   if (!guildConfig) {
     message.channel.send("Server config doesn't exist. Try ?config or ?help to get more info.");
     return;
-  }
-  const isOfficer = await isAuthorOfficer(message, guildConfig)
+  };
+  const isOfficer = await isAuthorOfficer(message, guildConfig);
   if (!isOfficer) {
     message.channel.send(`Only <@&${guildConfig.officerRole}> can user this command.`, {
       "allowedMentions": { "users": [] }
@@ -22,12 +22,13 @@ module.exports.run = async (bot, message, args) => {
     return;
   };
 
-  let events = await Event.find({ active: true, date: { $gt: Date.now() } }).sort({ date: 1 })
-  events = events.filter(event => event.guild.id === guildConfig.id)
+  let events = await Event.find({ active: true, date: { $gt: Date.now() } }).sort({ date: 1 });
+  events = events.filter(event => event.guild.id === guildConfig.id);
 
-  if (!events.length) message.channel.send("There are no scheduled events.")
+  if (!events.length) message.channel.send("There are no scheduled events.");
 
   events.forEach(async event => {
+
     const embed = new Discord.MessageEmbed()
       .addField("Event:", event.type, true)
       .addField("Max. Attendance:", event.maxAttendance, false)
@@ -35,7 +36,7 @@ module.exports.run = async (bot, message, args) => {
       .addField("Time:", `${event.date.getHours()}:${event.date.getMinutes() < 10 ? '0' + event.date.getMinutes() : event.date.getMinutes()}`, true)
       .addField("Details:", event.content, false)
       .setColor(event.mandatory === true ? "#ff0000" : "#58de49")
-      .setFooter(event.mandatory === true ? "Mandatory" : "Non-mandatory")
+      .setFooter(event.mandatory === true ? "Mandatory" : "Non-mandatory");
 
     const reactionMessage = await message.channel.send(embed);
 
@@ -66,22 +67,13 @@ module.exports.run = async (bot, message, args) => {
           break;
         };
       };
+
     });
 
-  })
+  });
 };
 
 module.exports.help = {
   name: "events",
   description: "?events \nto look up scheduled events, edit and delete them"
 };
-
-/*
-?events
-lists every active event in the guild as an embed message
-reaction icons for:
- - delete
- - edit
- - maybe attendance
-
-*/

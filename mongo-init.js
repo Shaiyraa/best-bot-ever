@@ -13,4 +13,3 @@ db.createUser({
     ]
 })
 
-db.createCollection('events')
